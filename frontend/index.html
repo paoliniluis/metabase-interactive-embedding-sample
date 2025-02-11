@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+        .iframe-container {
+            height: calc(100vh - 4rem);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-gray-800 text-white w-64 flex flex-col min-h-screen transition-all duration-300">
+            <div class="p-4">
+                <h1 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fas fa-gauge-high"></i>
+                    Dashboard
+                </h1>
+            </div>
+            <nav class="flex-1 p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#" class="nav-link flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700 active-link" data-page="home">
+                            <i class="fas fa-home"></i>
+                            Home
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700" data-page="dashboard1" data-url="http://localhost:9090/api/auth?return_to=http://localhost:3000/dashboard/1?side_nav=false&top_nav=false">
+                            <i class="fas fa-chart-pie"></i>
+                            Dashboard 1
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700" data-page="dashboard2" data-url="https://example.com/dashboard2">
+                            <i class="fas fa-chart-bar"></i>
+                            Dashboard 2
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="p-4">
+                <button id="toggle-sidebar" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700 w-full">
+                    <i class="fas fa-chevron-left"></i>
+                    Collapse
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 content">
+            <!-- Top Bar -->
+            <div class="bg-white shadow-sm p-4">
+                <div class="flex items-center justify-between">
+                    <h2 id="page-title" class="text-xl font-semibold">Home</h2>
+                    <div class="flex items-center gap-4">
+                        <button class="p-2 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <button class="p-2 rounded-lg hover:bg-gray-100">
+                            <i class="fas fa-user"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Content -->
+            <div id="content" class="p-6">
+                <!-- Home Page -->
+                <div id="home" class="page active">
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-semibold mb-4">Welcome to the Dashboard</h3>
+                        <div id="description" contenteditable="true" class="prose max-w-none p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            This is an editable description of your dashboard. Click here to modify the text. You can explain the purpose of your dashboards and provide any necessary instructions or context for users.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard iFrame Container -->
+                <div id="dashboard-container" class="page hidden">
+                    <div class="iframe-container w-full">
+                        <iframe id="dashboard-frame" class="w-full h-full border-0 rounded-lg shadow" src=""></iframe>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Navigation handling
+        const navLinks = document.querySelectorAll('.nav-link');
+        const homePage = document.getElementById('home');
+        const dashboardContainer = document.getElementById('dashboard-container');
+        const dashboardFrame = document.getElementById('dashboard-frame');
+        const pageTitle = document.getElementById('page-title');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Remove active class from all links
+                navLinks.forEach(l => l.classList.remove('active-link', 'bg-gray-700'));
+                
+                // Add active class to clicked link
+                link.classList.add('active-link', 'bg-gray-700');
+                
+                const pageId = link.getAttribute('data-page');
+                const dashboardUrl = link.getAttribute('data-url');
+                
+                if (pageId === 'home') {
+                    homePage.classList.remove('hidden');
+                    dashboardContainer.classList.add('hidden');
+                } else {
+                    homePage.classList.add('hidden');
+                    dashboardContainer.classList.remove('hidden');
+                    // Log the URL to verify it's being set correctly
+                    console.log('Setting iframe src to:', dashboardUrl);
+                    if (dashboardUrl) {
+                        dashboardFrame.src = dashboardUrl;
+                    }
+                }
+                
+                pageTitle.textContent = link.textContent.trim();
+            });
+        });
+
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggle-sidebar');
+        const toggleIcon = toggleBtn.querySelector('i');
+        const mainContent = document.querySelector('.content');
+        let sidebarCollapsed = false;
+
+        toggleBtn.addEventListener('click', () => {
+            sidebarCollapsed = !sidebarCollapsed;
+            
+            if (sidebarCollapsed) {
+                sidebar.classList.remove('w-64');
+                sidebar.classList.add('w-16');
+                mainContent.classList.add('ml-16');
+                mainContent.classList.remove('ml-64');
+                toggleIcon.classList.remove('fa-chevron-left');
+                toggleIcon.classList.add('fa-chevron-right');
+                
+                // Hide text in sidebar
+                document.querySelectorAll('#sidebar span, #sidebar h1').forEach(el => {
+                    el.classList.add('hidden');
+                });
+            } else {
+                sidebar.classList.add('w-64');
+                sidebar.classList.remove('w-16');
+                mainContent.classList.remove('ml-16');
+                mainContent.classList.add('ml-64');
+                toggleIcon.classList.remove('fa-chevron-right');
+                toggleIcon.classList.add('fa-chevron-left');
+                
+                // Show text in sidebar
+                document.querySelectorAll('#sidebar span, #sidebar h1').forEach(el => {
+                    el.classList.remove('hidden');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
