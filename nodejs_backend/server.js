@@ -10,7 +10,7 @@ const port = 9090;
 
 // taken from https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/Node_server_without_framework
 // we needed to serve the static files from the frontend folder from the backend to avoid CORS issues
-const STATIC_PATH = path.join(process.cwd(), "./frontend");
+const STATIC_PATH = path.join(process.cwd(), "../frontend");
 const toBool = [() => true, () => false];
 
 /**

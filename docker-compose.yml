@@ -1,8 +1,8 @@
 services:
   metabase:
     build:
-      dockerfile: $PWD/runner/Dockerfile
-      context: $PWD/runner/
+      dockerfile: ./runner/Dockerfile
+      context: ./runner/
       args:
         version: v1.53.1
     container_name: metabase
@@ -13,7 +13,7 @@ services:
       MB_EMBEDDING_APP_ORIGIN: "*"
       MB_ENABLE_EMBEDDING: true
       MB_SITE_URL: http://localhost:3000/
-      MB_PREMIUM_EMBEDDING_TOKEN: <your_token_here>
+      MB_PREMIUM_EMBEDDING_TOKEN: <your_token>
       MB_LOAD_ANALYTICS_CONTENT: false
       MB_LOAD_SAMPLE_CONTENT: false
       MB_JWT_ENABLED: true
@@ -21,7 +21,7 @@ services:
       MB_JWT_SHARED_SECRET: ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
       MB_JWT_GROUP_SYNC: true
       MB_JWT_GROUP_MAPPINGS: '{"viewer":[3]}'
-      JAVA_TOOL_OPTIONS: "-Xmx1536m"
+      JAVA_TOOL_OPTIONS: "-Xmx1536m"      
     deploy:
       resources:
         limits:
@@ -38,19 +38,19 @@ services:
       timeout: 5s
       retries: 10
     depends_on:
-      postgres-data1:
+      sample-database:
         condition: service_healthy
   setup:
-    build: setup/.
+    image: python:3-alpine
     container_name: setup
     volumes:
-      - $PWD/setup/setup.py:/app/setup.py
+      - ./setup/:/app/
     networks:
       - metanet
     depends_on:
       metabase:
         condition: service_healthy
-    command: python /app/setup.py
+    command: sh -c "pip install --disable-pip-version-check -r /app/requirements.txt && python /app/setup.py"
     deploy:
       resources:
         limits:
@@ -66,7 +66,7 @@ services:
       connection_string: "postgres://metabase:metasample123@postgres-data1:5432/sample"
       table: Orders
   # Remove this service if you are using your own database
-  postgres-data1:
+  sample-database:
     image:  metabase/qa-databases:postgres-sample-12
     container_name: postgres-data1
     hostname: postgres-data1

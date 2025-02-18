@@ -92,8 +92,6 @@ if health() == 'healthy' and database.drivername in supported_dbs:
         }
 
         session.delete(f'{databaseEndpoint}/1')
-        session.post(f'{groupEndpoint}', verify=False, json={"name":"viewer"})
-        session.put(f'{permissionsGraphEndpoint}', verify=False, json={"groups":{"1":{"1":{"create-queries":"no","download":{"schemas":"full"},"view-data":"blocked"}},"3":{"1":{"view-data":"unrestricted","download":{"schemas":"full"},"create-queries":"query-builder"}}},"revision":0,"sandboxes":[],"impersonations":[]})
 
         myDatabase = session.post(databaseEndpoint, verify=False, json=db)
         myDatabase = myDatabase.json()['id']
@@ -105,6 +103,27 @@ if health() == 'healthy' and database.drivername in supported_dbs:
             print('Not fully synced yet... waiting 1 second')
 
         if finished_syncing:
+            session.post(f'{groupEndpoint}', verify=False, json={"name":"viewer"})
+            session.put(
+                f'{permissionsGraphEndpoint}',
+                verify=False,
+                json={
+                "groups": {
+                    "3": {
+                        "1": {
+                            "view-data": "unrestricted",
+                            "download": {
+                                "schemas": "full"
+                            },
+                            "create-queries": "query-builder"
+                        }
+                    }
+                },
+                "revision": 0,
+                "sandboxes": [],
+                "impersonations": []
+                }
+            )
             print('Database fully synced')
             candidates = session.get(f'{host}:{port}/api/automagic-dashboards/database/{myDatabase}/candidates', verify=False)
             candidates = candidates.json()[0]['tables']

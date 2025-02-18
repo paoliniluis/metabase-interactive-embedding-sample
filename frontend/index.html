@@ -34,7 +34,8 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#" class="nav-link flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700" data-page="dashboard1" data-url="http://localhost:9090/api/auth?return_to=http://localhost:3000/dashboard/1?side_nav=false&top_nav=false">
+                        <!-- SUPER IMPORTANT: check the encoding of the parameters!!! -->
+                        <a href="#" class="nav-link flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700" data-page="dashboard1" data-url="http://localhost:9090/api/auth?return_to=http://localhost:3000/dashboard/1?new_button%3Dtrue%26side_nav%3Dfalse">
                             <i class="fas fa-chart-pie"></i>
                             Dashboard 1
                         </a>
@@ -114,6 +115,7 @@
                 
                 const pageId = link.getAttribute('data-page');
                 const dashboardUrl = link.getAttribute('data-url');
+
                 
                 if (pageId === 'home') {
                     homePage.classList.remove('hidden');
@@ -123,7 +125,7 @@
                     dashboardContainer.classList.remove('hidden');
                     // Log the URL to verify it's being set correctly
                     console.log('Setting iframe src to:', dashboardUrl);
-                    if (dashboardUrl) {
+                        if (dashboardUrl) {
                         dashboardFrame.src = dashboardUrl;
                     }
                 }
