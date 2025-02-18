@@ -5,6 +5,7 @@
 - Docker (to run Metabase and the setup containers)
 - Node.js 20+, or Python 3.1x+ or PHP 8+
 - Optional: a database to connect to
+- Optional: git, to clone this repository via a command line
 
 ## How to run (all OS)
 
