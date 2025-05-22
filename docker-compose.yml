@@ -1,6 +1,6 @@
 services:
   metabase:
-    image: metabase/metabase-enterprise:v1.53.8
+    image: metabase/metabase-enterprise:v1.54.9
     container_name: metabase
     hostname: metabase
     ports:
@@ -17,7 +17,7 @@ services:
       MB_JWT_SHARED_SECRET: ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
       MB_JWT_GROUP_SYNC: true
       MB_JWT_GROUP_MAPPINGS: '{"viewer":[3]}'
-      JAVA_TOOL_OPTIONS: "-Xmx1536m"      
+      JAVA_TOOL_OPTIONS: "-Xmx1536m"
     deploy:
       resources:
         limits:
@@ -81,7 +81,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 3
-    command: -c log_statement=all
 
 networks: 
   metanet:
