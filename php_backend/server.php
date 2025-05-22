@@ -4,7 +4,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 // Constants
-define('HOSTNAME', '127.0.0.1');
+define('HOSTNAME', 'localhost');
 define('PORT', 9090);
 define('STATIC_PATH', realpath(__DIR__ . '/../frontend'));
 define('JWT_SIGNING_KEY_INTERACTIVE_EMBEDDING', 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff');

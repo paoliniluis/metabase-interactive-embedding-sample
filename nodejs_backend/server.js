@@ -5,7 +5,7 @@ const url = require("url");
 
 const jwt = require("jsonwebtoken");
 
-const hostname = '127.0.0.1';
+const hostname = 'localhost';
 const port = 9090;
 
 // taken from https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/Node_server_without_framework

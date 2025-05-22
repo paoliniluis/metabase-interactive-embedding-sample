@@ -5,7 +5,7 @@ from pathlib import Path
 import jwt
 
 # Constants
-HOSTNAME = '127.0.0.1'
+HOSTNAME = 'localhost'
 PORT = 9090
 STATIC_PATH = Path(__file__).parent.parent / "frontend"
 JWT_SIGNING_KEY_INTERACTIVE_EMBEDDING = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
