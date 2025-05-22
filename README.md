@@ -29,6 +29,14 @@ Notes:
 - if at some point the message "container metabase is unhealthy" appears, just execute `docker compose up` another time. This is due to the fact that the health check that's configured in the compose file is too low
 - you'll see a lot of lines when the containers are starting, this is due to the fact that we're not running the stack in "detached" mode, since we want to see the errors and what's going on behind the scenes in case we want to debug
 
+## Note for MacOS users
+
+If you don't see that Metabase has initialized (or the setup container crashes), follow these steps on your machine:
+- Open Docker Desktop (from your Applications folder or menu bar icon).
+- Go to Settings/Preferences (the gear icon).
+- Navigate to Resources > File Sharing and ensure that the root directory of your project (or a parent directory that contains it) is listed here and enabled. If your project is in, say, /Users/yourusername/my-project, then /Users or /Users/yourusername should be listed. If it's not, click the + button to add it.
+- Apply & Restart Docker Desktop after making any changes here.
+
 ## How to delete everything
 
-Just simply stop the service you started and then execute `docker compose down`, which will delete all containers from your system
+Just simply stop the service you started and then execute `docker compose down`, which will delete all containers from your system. You might want to do this to start over in case you need.
