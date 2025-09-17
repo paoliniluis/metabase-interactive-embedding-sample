@@ -11,6 +11,7 @@ databaseEndpoint = f'{host}:{port}/api/database'
 loginEndpoint = f'{host}:{port}/api/session'
 groupEndpoint = f'{host}:{port}/api/permissions/group'
 permissionsGraphEndpoint = f'{host}:{port}/api/permissions/graph'
+settingsEndpoint = f'{host}:{port}/api/setting'
 connection_string = os.environ.get('connection_string') if os.environ.get('connection_string') else 'postgres://metabase:metabase@postgres-data1:5432/sample'
 
 database = make_url(connection_string)
@@ -150,6 +151,7 @@ if health() == 'healthy' and database.drivername in supported_dbs:
                 dashboard = dashboard.json()['id']
                 session.put(f'{host}:{port}/api/dashboard/{dashboard}', verify=False, json={'enable_embedding':True})
                 session.put(f'{host}:{port}/api/card/4', verify=False, json={'enable_embedding':True})
+                session.put(f'{settingsEndpoint}', verify=False, json={"enable-embedding-simple":True,"show-simple-embed-terms":False})
 
     except Exception as e:
         print(e)

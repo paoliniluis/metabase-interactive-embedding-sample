@@ -48,13 +48,27 @@ function handle_auth($query_params) {
     ];
     
     $token = sign_user_token($user);
-    $redirect_params = ['jwt' => $token];
-    if (isset($query_params['return_to'])) {
-        $redirect_params['return_to'] = $query_params['return_to'];
-    }
     
-    $redirect_url = METABASE_URL . '/auth/sso?' . http_build_query($redirect_params);
-    header("Location: $redirect_url", true, 302);
+    $is_sdk_request = isset($query_params['response']) && $query_params['response'] === 'json';
+    
+    if ($is_sdk_request) {
+        // For SDK requests, return a JSON object with the JWT.
+        error_log("SDK request detected, returning JWT in JSON response");
+        http_response_code(200);
+        header('Content-Type: application/json');
+        echo json_encode(['jwt' => $token]);
+    } else {
+        error_log("Non-SDK request detected, redirecting to Metabase SSO");
+        // For interactive embedding, construct the Metabase SSO URL
+        // and redirect the user's browser to it.
+        $redirect_params = ['jwt' => $token];
+        if (isset($query_params['return_to'])) {
+            $redirect_params['return_to'] = $query_params['return_to'];
+        }
+        
+        $redirect_url = METABASE_URL . '/auth/sso?' . http_build_query($redirect_params);
+        header("Location: $redirect_url", true, 302);
+    }
     exit();
 }
 

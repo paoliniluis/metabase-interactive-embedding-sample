@@ -79,16 +79,29 @@ const server = createServer(async (req, res) => {
                 groups: ["viewer"], // groups property is optional, we're sending this to show how you can configure group mappings in Metabase
             }
 
-            res.writeHead(302, {
-                'Location': url.format({
-                    pathname: `${METABASE_URL}/auth/sso`,
-                    query: {
-                        jwt: signUserToken(user),
-                        return_to: url_parts.query['return_to'],
-                        // you can also include more parameters to customize the features you want to expose: https://www.metabase.com/docs/latest/embedding/interactive-embedding#showing-or-hiding-metabase-ui-components
-                    },
-                }),
-            });
+            const isSdkRequest = url_parts.query.response === "json";
+
+            if (isSdkRequest) {
+                // For SDK requests, return a JSON object with the JWT.
+                console.log("SDK request detected, returning JWT in JSON response");
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ jwt: signUserToken(user) }));
+            } else {
+                console.log("Non-SDK request detected, redirecting to Metabase SSO");
+                // For interactive embedding, construct the Metabase SSO URL
+                // and redirect the user's browser to it.
+                res.writeHead(302, {
+                    'Location': url.format({
+                        pathname: `${METABASE_URL}/auth/sso`,
+                        query: {
+                            jwt: signUserToken(user),
+                            return_to: url_parts.query['return_to'],
+                            // you can also include more parameters to customize the features you want to expose: https://www.metabase.com/docs/latest/embedding/interactive-embedding#showing-or-hiding-metabase-ui-components
+                        },
+                    }),
+                });
+            }
+
             return res.end();
         default:
             // also taken from https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/Node_server_without_framework

@@ -1,7 +1,7 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs, urlencode
 from pathlib import Path
-
+import json
 import jwt
 
 # Constants
@@ -44,19 +44,31 @@ class RequestHandler(BaseHTTPRequestHandler):
         # Create JWT token
         token = sign_user_token(user)
         
-        # Build redirect URL
-        redirect_params = {
-            'jwt': token
-        }
-        if 'return_to' in query_params:
-            redirect_params['return_to'] = query_params['return_to'][0]
-
-        redirect_url = f"{METABASE_URL}/auth/sso?{urlencode(redirect_params)}"
+        is_sdk_request = query_params.get('response', [None])[0] == "json"
         
-        # Send redirect response
-        self.send_response(302)
-        self.send_header('Location', redirect_url)
-        self.end_headers()
+        if is_sdk_request:
+            # For SDK requests, return a JSON object with the JWT.
+            print("SDK request detected, returning JWT in JSON response")
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({"jwt": token}).encode('utf-8'))
+        else:
+            print("Non-SDK request detected, redirecting to Metabase SSO")
+            # For interactive embedding, construct the Metabase SSO URL
+            # and redirect the user's browser to it.
+            redirect_params = {
+                'jwt': token
+            }
+            if 'return_to' in query_params:
+                redirect_params['return_to'] = query_params['return_to'][0]
+
+            redirect_url = f"{METABASE_URL}/auth/sso?{urlencode(redirect_params)}"
+            
+            # Send redirect response
+            self.send_response(302)
+            self.send_header('Location', redirect_url)
+            self.end_headers()
 
     def _handle_static_files(self):
         """Handle serving static files"""
@@ -94,7 +106,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         exists = Path(file_path).exists()
         print( STATIC_PATH)
         stream_path = file_path if exists else STATIC_PATH / "404.html"
-        ext = stream_path[stream_path.find('.',0):len(stream_path)] if len(stream_path) else ''
+        ext = Path(stream_path).suffix[1:].lower() if Path(stream_path).suffix else ''
 
         return {
             'found': exists,

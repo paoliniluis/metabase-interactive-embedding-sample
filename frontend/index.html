@@ -6,14 +6,9 @@
     <title>Modern Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .content {
-            transition: margin-left 0.3s ease-in-out;
-        }
-        .iframe-container {
-            height: calc(100vh - 4rem);
-        }
-    </style>
+    <!-- Use Tailwind for layout, remove custom CSS -->
+    <!-- iframe-resizer for Metabase embed resizing -->
+    <script src="https://cdn.jsdelivr.net/npm/iframe-resizer@4.3.7/js/iframeResizer.min.js"></script>
 </head>
 <body class="bg-gray-100">
     <div class="min-h-screen flex">
@@ -37,13 +32,25 @@
                         <!-- SUPER IMPORTANT: check the encoding of the parameters!!! -->
                         <a href="#" class="nav-link flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700" data-page="dashboard1" data-url="http://localhost:9090/api/auth?return_to=http://localhost:3000/dashboard/1?new_button%3Dtrue%26side_nav%3Dfalse">
                             <i class="fas fa-chart-pie"></i>
-                            Dashboard 1
+                            Interactive Dashboard 1
                         </a>
                     </li>
                     <li>
                         <a href="#" class="nav-link flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700" data-page="dashboard2" data-url="https://example.com/dashboard2">
                             <i class="fas fa-chart-bar"></i>
-                            Dashboard 2
+                            Interactive Dashboard 2
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700" data-page="dashboard3">
+                            <i class="fas fa-chart-bar"></i>
+                            Embed JS Dashboard 1
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700" data-page="dashboard4">
+                            <i class="fas fa-chart-bar"></i>
+                            Embed JS Dashboard 2
                         </a>
                     </li>
                 </ul>
@@ -87,8 +94,9 @@
 
                 <!-- Dashboard iFrame Container -->
                 <div id="dashboard-container" class="page hidden">
-                    <div class="iframe-container w-full">
+                    <div class="iframe-container w-full" style="height: calc(100vh - 120px);">
                         <iframe id="dashboard-frame" class="w-full h-full border-0 rounded-lg shadow" src=""></iframe>
+                        <div id="embedjs-dashboard-placeholder"></div>
                     </div>
                 </div>
             </div>
@@ -102,35 +110,84 @@
         const dashboardContainer = document.getElementById('dashboard-container');
         const dashboardFrame = document.getElementById('dashboard-frame');
         const pageTitle = document.getElementById('page-title');
+        const embedjsPlaceholder = document.getElementById('embedjs-dashboard-placeholder');
+        let embedJsScript = null;
 
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                
+
                 // Remove active class from all links
                 navLinks.forEach(l => l.classList.remove('active-link', 'bg-gray-700'));
-                
+
                 // Add active class to clicked link
                 link.classList.add('active-link', 'bg-gray-700');
-                
+
                 const pageId = link.getAttribute('data-page');
                 const dashboardUrl = link.getAttribute('data-url');
+                const linkText = link.textContent.trim();
 
-                
                 if (pageId === 'home') {
                     homePage.classList.remove('hidden');
                     dashboardContainer.classList.add('hidden');
                 } else {
                     homePage.classList.add('hidden');
                     dashboardContainer.classList.remove('hidden');
-                    // Log the URL to verify it's being set correctly
-                    console.log('Setting iframe src to:', dashboardUrl);
-                        if (dashboardUrl) {
-                        dashboardFrame.src = dashboardUrl;
+                    if (linkText === 'Embed JS Dashboard 1') {
+                        dashboardFrame.style.display = 'none';
+                        // Add metabase-dashboard component if not present
+                        if (!embedjsPlaceholder.querySelector('metabase-dashboard')) {
+                            embedjsPlaceholder.innerHTML = '<metabase-dashboard dashboard-id="1" with-title="true" with-downloads="false" drills="true"></metabase-dashboard>';
+                        }
+                        // Dynamically load embed.js if not loaded
+                        if (!embedJsScript) {
+                            embedJsScript = document.createElement('script');
+                            embedJsScript.src = 'http://localhost:3000/app/embed.js';
+                            embedJsScript.defer = true;
+                            document.body.appendChild(embedJsScript);
+                        }
+                        // Wait for metabase-dashboard to inject iframe, then apply iframeResizer to fit parent
+                        const observer = new MutationObserver((mutations) => {
+                            mutations.forEach((mutation) => {
+                                mutation.addedNodes.forEach((node) => {
+                                    if (node.tagName === 'IFRAME') {
+                                        if (window.iFrameResize) {
+                                            window.iFrameResize({
+                                                log: false,
+                                                minHeight: 800,
+                                                heightCalculationMethod: 'lowestElement',
+                                                scrolling: true,
+                                                onResized: function(messageData) {
+                                                    console.log('Injected iframe resized:', messageData);
+                                                }
+                                            }, node);
+                                        }
+                                        observer.disconnect();
+                                    }
+                                });
+                            });
+                        });
+                        observer.observe(embedjsPlaceholder, { childList: true, subtree: true });
+                    } else {
+                        dashboardFrame.style.display = '';
+                        dashboardFrame.src = dashboardUrl || '';
+                        // Remove metabase-dashboard if present
+                        embedjsPlaceholder.innerHTML = '';
+                        // Apply iframeResizer to the iframe
+                        if (window.iFrameResize) {
+                            window.iFrameResize({
+                                log: false,
+                                minHeight: 800,
+                                heightCalculationMethod: 'lowestElement',
+                                scrolling: true,
+                                onResized: function(messageData) {
+                                    console.log('Iframe resized:', messageData);
+                                }
+                            }, dashboardFrame);
+                        }
                     }
                 }
-                
-                pageTitle.textContent = link.textContent.trim();
+                pageTitle.textContent = linkText;
             });
         });
 
@@ -168,6 +225,26 @@
                 document.querySelectorAll('#sidebar span, #sidebar h1').forEach(el => {
                     el.classList.remove('hidden');
                 });
+            }
+        });
+    </script>
+    <!-- embed.js is now loaded dynamically when needed -->
+    <script>
+        function defineMetabaseConfig(config) {
+            window.metabaseConfig = config;
+        }
+        defineMetabaseConfig({
+            "instanceUrl": "http://localhost:3000",
+            theme: {
+                fontFamily: "Lato",
+                fontSize: "16px",
+                colors: {
+                    background: "#f3f4f6",
+                    "text-primary": "#111827",
+                    brand: "#3b82f6",
+                    filter: "#6b7280",
+                    summarize: "#10b981",
+                },
             }
         });
     </script>
